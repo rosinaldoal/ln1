@@ -1,0 +1,35 @@
+name: Captura Diaria LN1
+
+on:
+  schedule:
+    # 11:00 UTC = 08:00 no Horário de Brasília
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Permite rodar manualmente a qualquer momento
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Executar captura
+        # Note que aqui usa 'captura.js' com "a", exatamente como está no seu repositório
+        run: node captura.js
+
+      - name: Salvar alteracoes no GitHub
+        run: |
+          git config --global user.name "Robo de Prints"
+          git config --global user.email "actions@github.com"
+          git add prints/
+          git commit -m "auto: print diario LN1 [$(date +'%Y-%m-%d')]" || exit 0
+          git push
