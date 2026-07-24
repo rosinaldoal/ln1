@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprovação de Mídia - LN1.com.br</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 30px 20px; }
+    header { max-width: 1200px; margin: 0 auto 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+    h1 { font-size: 1.5rem; color: #38bdf8; }
+    .subtitle { font-size: 0.9rem; color: #94a3b8; margin-top: 4px; }
+    .grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .card { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-4px); }
+    .card img { width: 100%; height: 200px; object-fit: cover; object-position: top; cursor: pointer; border-bottom: 1px solid #334155; }
+    .card-body { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .date-tag { font-weight: 600; font-size: 1rem; }
+    .time-tag { font-size: 0.8rem; color: #94a3b8; }
+    .btn-download { background: #0284c7; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }
+    .btn-download:hover { background: #0369a1; }
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1>Comprovação Diária de Mídia</h1>
+      <p class="subtitle">Capturas automáticas da home do site LN1.com.br</p>
+    </div>
+  </header>
+
+  <div class="grid" id="gallery">
+    <div class="empty-state">Carregando prints salvos...</div>
+  </div>
+
+  <script>
+    async function loadPrints() {
+      const gallery = document.getElementById('gallery');
+      try {
+        const res = await fetch('prints/manifest.json');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+          gallery.innerHTML = '<div class="empty-state">Nenhum print capturado ainda.</div>';
+          return;
+        }
+
+        gallery.innerHTML = data.map(item => `
+          <div class="card">
+            <a href="prints/${item.file}" target="_blank">
+              <img src="prints/${item.file}" alt="Print ${item.date}" loading="lazy">
+            </a>
+            <div class="card-body">
+              <div>
+                <div class="date-tag">${formatDate(item.date)}</div>
+                <div class="time-tag">Horário: ${item.time || '08:00'}</div>
+              </div>
+              <a href="prints/${item.file}" download class="btn-download">Baixar</a>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        gallery.innerHTML = '<div class="empty-state">O robô executará a primeira captura às 08:00 ou assim que você rodar o script manualmente no GitHub.</div>';
+      }
+    }
+
+    function formatDate(str) {
+      const [year, month, day] = str.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    loadPrints();
+  </script>
+</body>
+</html>
